@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/bespoken/logless-client/tree/master.svg?style=svg)](https://circleci.com/gh/bespoken/logless-client/tree/master)
+
 # logless-client
 
 Logless will automatically capture logs and diagnostics for your Node.js Lambda, Google Cloud Function or Express.js service.
