@@ -1,6 +1,6 @@
 {
   "name": "logless-client",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "logless client for bespoken tools",
   "main": "./lib/src/index.js",
   "typings": "./lib/src/index.d.ts",
