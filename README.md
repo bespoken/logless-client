@@ -1,4 +1,5 @@
 [![CircleCI](https://circleci.com/gh/bespoken/logless-client/tree/master.svg?style=svg)](https://circleci.com/gh/bespoken/logless-client/tree/master)
+[![codecov](https://codecov.io/gh/bespoken/logless-client/branch/master/graph/badge.svg)](https://codecov.io/gh/bespoken/logless-client)
 
 # logless-client
 

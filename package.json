@@ -3,7 +3,13 @@
   "version": "0.0.1",
   "description": "logless client for bespoken tools",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:bespoken/logless-client.git"
+  },
   "scripts": {
+    "docs": "gulp --gulpfile docs/gulpfile.js --cwd .",
+    "posttest": "nyc report --reporter=json --reporter=html && codecov -f coverage/*.json",
     "test": "nyc mocha lib/**/*test.js",
     "tsc": "tsc"
   },
@@ -15,6 +21,7 @@
     "@types/node": "^10.1.2",
     "@types/sinon": "^4.3.3",
     "body-parser": "^1.18.3",
+    "codecov": "^3.0.2",
     "continuation-local-storage": "^3.2.1",
     "express": "^4.16.3",
     "mocha": "^5.2.0",
