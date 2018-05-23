@@ -2,7 +2,15 @@
   "name": "logless-client",
   "version": "0.0.1",
   "description": "logless client for bespoken tools",
-  "main": "index.js",
+  "main": "./lib/src/index.js",
+  "typings": "./lib/src/index.d.ts",
+  "engines": {
+    "node": "> 4.9.0"
+  },
+  "files": [
+    "lib/src/*.js",
+    "lib/src/*.d.ts"
+  ],
   "repository": {
     "type": "git",
     "url": "git@github.com:bespoken/logless-client.git"
