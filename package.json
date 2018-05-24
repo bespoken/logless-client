@@ -1,6 +1,6 @@
 {
   "name": "logless-client",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "logless client for bespoken tools",
   "main": "./lib/src/index.js",
   "typings": "./lib/src/index.d.ts",
@@ -36,7 +36,9 @@
     "nyc": "^11.8.0",
     "sinon": "^5.0.7",
     "supertest": "^3.1.0",
-    "typescript": "^2.8.3",
+    "typescript": "^2.8.3"
+  },
+  "dependencies": {
     "uuid": "^3.2.1"
   }
 }
