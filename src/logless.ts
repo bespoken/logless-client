@@ -74,7 +74,7 @@ export class Logless {
      * @param handler
      * @returns {LambdaFunction}
      */
-    public static capture(source: string, handler: Function): Function {
+    public static capture(source: string, handler: any): Function {
         if (handler === undefined || handler === null) {
             throw new Error("Handler is null or undefined! This must be passed.");
         }
@@ -186,7 +186,7 @@ export interface CloudFunction {
  */
 class FunctionWrapper {
 
-    public constructor (private source: string, public wrappedFunction: Function) {}
+    public constructor (private source: string, public wrappedFunction: any) {}
 
     public handle(arg1: any, arg2: any, arg3: any) {
         // If the second argument is a context object, then this is a Lambda
@@ -207,7 +207,16 @@ class FunctionWrapper {
         context.logger = logger;
 
         try {
-            this.wrappedFunction.call(this, event, context, logger.callback());
+            const promise = this.wrappedFunction.call(this, event, context, logger.callback());
+            
+            // For Node8, lambdas can return a promise - if they do, we call the context object with results
+            if (promise) {
+                promise.then((result: any) => {
+                    context.done(null, result);
+                }).catch((error: any) => {
+                    context.done(error, null);
+                });
+            }
         } catch (e) {
             console.error(e);
             logger.flush();
