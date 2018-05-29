@@ -12,14 +12,14 @@ Once integrated, this is where your logs and data will be viewable.
 Install the dependency
 
 <pre><code>
-    $npm install bespoken-tools --save
+    $npm install logless-client --save
 </code></pre>
 
 To use it with Lambdas, simply wrap your function handler, like so:
 <pre><code>
-    var bst = require('bespoken-tools');
+    var client = require('logless-client');
 
-    exports.handler = bst.Logless.capture("&lt;SECRET_KEY&gt;", function (event, context) {
+    exports.handler = client.Logless.capture("&lt;SECRET_KEY&gt;", function (event, context) {
         // Lambda code goes here
         context.done(null, "Hello World");
     });
@@ -28,9 +28,9 @@ To use it with Lambdas, simply wrap your function handler, like so:
 
 To use it with Google Cloud Functions, simply wrap your function handler:
 <pre><code>
-    var bst = require('bespoken-tools');
+    var client = require('logless-client');
 
-    exports.hello = bst.Logless.capture("&lt;SECRET_KEY&gt;", function (request, response) {
+    exports.hello = client.Logless.capture("&lt;SECRET_KEY&gt;", function (request, response) {
         // Cloud Function code goes here
         response.json({ foo: "bar" });
     });
@@ -39,9 +39,9 @@ To use it with Google Cloud Functions, simply wrap your function handler:
 
 To use it with Express.js, simply configure it with your routes:
 <pre><code>
-    var bst = require('bespoken-tools');
+    var client = require('logless-client');
 
-    var logless = bst.Logless.middleware("&lt;SECRET_KEY&gt;");
+    var logless = client.Logless.middleware("&lt;SECRET_KEY&gt;");
     app = express();
 
     app.use(bodyParser.json());
