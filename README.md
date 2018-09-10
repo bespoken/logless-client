@@ -19,10 +19,13 @@ To use it with Lambdas, simply wrap your function handler, like so:
 <pre><code>
     var client = require('logless-client');
 
-    exports.handler = client.Logless.capture("&lt;SECRET_KEY&gt;", function (event, context) {
-        // Lambda code goes here
-        context.done(null, "Hello World");
-    });
+    const skillBuilder = Alexa.SkillBuilders.custom();
+
+    exports.handler = client.Logless.capture("&lt;SECRET_KEY&gt;", skillBuilder
+        .addRequestHandlers(
+            // Lambda request handlers goes here
+        )
+        .lambda());
 
 </code></pre>
 
