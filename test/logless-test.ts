@@ -201,6 +201,65 @@ describe("Logless", function() {
 
             handler.call(this, {request: true}, context);
         });
+
+        it("Log stuff when lambda returns a promise", function (done) {
+            let context = new MockContext();
+            context.awsRequestId = "FakeAWSRequestId";
+            context.done = function (error: Error, result: any) {
+                assert(result);
+                done();
+            };
+
+            const onCall = function (context: any) {
+                const flush = context.logger.flush;
+
+                let flushCount = 0;
+                context.logger.flush = function (onFlush: Function) {
+                    flushCount++;
+                    if (flushCount > 1) {
+                        assert(false, "Flushed called more than once");
+                    }
+                    flush.call(context.logger, onFlush);
+                    context.logger.flush = flush;
+                };
+
+                verifyLogger(context.logger, function (json: any) {
+                    assert.equal(json.source, "JPK");
+                    assert.equal(json.transaction_id.length, 36);
+                    assert.equal(json.logs.length, 7);
+                    assert(json.logs[0].payload.request);
+                    assert.equal(json.logs[0].log_type, "INFO");
+                    assert.strictEqual(json.logs[0].tags[0], "request");
+                    assert.strictEqual(json.logs[1].payload, "I am a log with Test Test2");
+                    assert.equal(json.logs[1].log_type, "DEBUG");
+                    assert.equal(json.logs[2].payload, "I am info");
+                    assert.equal(json.logs[2].log_type, "INFO");
+                    assert.equal(json.logs[3].timestamp.length, 24);
+                    assert.equal(json.logs[3].log_type, "WARN");
+                    assert.equal(json.logs[4].log_type, "ERROR");
+                    assert.equal(json.logs[5].log_type, "INFO");
+                    assert.equal(json.logs[5].payload, null);
+                    assert(json.logs[6].payload.response);
+                    assert(json.logs[6].payload.key, "value");
+                    assert.strictEqual(json.logs[6].tags[0], "response");
+                });
+            };
+
+            const handler: any = Logless.capture("JPK", function(event: any, context: any) {
+                return new Promise((resolve) => {
+                    onCall(context);
+                    console.log("I am a log with %s %s", "Test", "Test2");
+                    console.info("I am info");
+                    console.warn("I am a warning");
+                    console.error("I am an error");
+                    console.info();
+                    context.done(null, {response: true, key: "value"});
+                    resolve({ custom: true });
+                });
+            });
+
+            handler.call(this, {request: true}, context);
+        });
     });
 
     describe("Logging Using the Cloud Functions", function () {
@@ -553,17 +612,6 @@ describe("Logless Express Tests", function () {
     let server: Server = null;
     let app: Application = null;
 
-    beforeEach(function(done) {
-        done();
-    });
-
-    afterEach(function(done) {
-        done();
-        // server && server.close(function () {
-        //     done();
-        // });
-    });
-
     it("Captures request and response", function(done) {
         const handler = Logless.middleware("1b7d6d1d-d214-4770-a3fd-4ee6c7ffab3b");
 
@@ -572,24 +620,19 @@ describe("Logless Express Tests", function () {
         app.use(bodyParser.json(), handler.requestHandler);
 
         app.post("/", function (request: Request, response: Response) {
+            console.log("chesu");
             response.send("Hello World!");
         });
-
-        // server = app.listen(3000, function () {
-        //     console.log("Example app listening on port 3000!");
-        // });
 
         // logger variable gets set on the handler so we can write tests like this
         verifyLogger((<any> handler.requestHandler).logger, function(data: any) {
             assert.equal(data.logs.length, 2);
             assert.equal(data.logs[0].tags.length, 1);
             assert.equal(data.logs[0].tags[0], "request");
+            console.log("done");
             done();
         });
 
-        // request(app).post("localhost", 3000, "/", JSON.stringify({ test: "value" }), function(data, statusCode) {
-        //     console.log("Response: " + data.toString());
-        // });
         request(app)
             .post("/")
             .send(JSON.stringify({ test: "value" }))
@@ -599,7 +642,6 @@ describe("Logless Express Tests", function () {
     });
 
     it("Captures request and response JSON", function(done) {
-        // const client = new HTTPClient();
         const handler = Logless.middleware("1b7d6d1d-d214-4770-a3fd-4ee6c7ffab3b");
 
         app = express();
@@ -610,10 +652,6 @@ describe("Logless Express Tests", function () {
             response.contentType("application/json");
             response.send(JSON.stringify({ test: { a: "b" }}));
         });
-
-        // server = app.listen(3000, function () {
-        //     console.log("Example app listening on port 3000!");
-        // });
 
         // logger variable gets set on the handler so we can write tests like this
         verifyLogger((<any> handler.requestHandler).logger, function(data: any) {
@@ -625,9 +663,6 @@ describe("Logless Express Tests", function () {
             done();
         });
 
-        // client.post("localhost", 3000, "/", JSON.stringify({ test: "value" }), function(data, statusCode) {
-        //     console.log("Response: " + data.toString());
-        // });
         request(app)
             .post("/")
             .send(JSON.stringify({ test: "value" }))
@@ -637,7 +672,6 @@ describe("Logless Express Tests", function () {
     });
 
     it("Captures two requests and responses", function(done) {
-        // const client = new HTTPClient();
         const handler = Logless.middleware("1b7d6d1d-d214-4770-a3fd-4ee6c7ffab3b");
 
         app = express();
@@ -648,10 +682,6 @@ describe("Logless Express Tests", function () {
             response.contentType("application/json");
             response.send(JSON.stringify({ test: { a: "b" }}));
         });
-
-        // server = app.listen(3000, function () {
-        //     console.log("Example app listening on port 3000!");
-        // });
 
         let uuid: string = null;
         // Make sure transaction ID changes between calls
@@ -665,11 +695,6 @@ describe("Logless Express Tests", function () {
             }
         });
 
-        // client.post("localhost", 3000, "/", JSON.stringify({ test: "value" }), function(data, statusCode) {
-        //     client.post("localhost", 3000, "/", JSON.stringify({ test: "value" }), function(data, statusCode) {
-        //         console.log("Response: " + data.toString());
-        //     });
-        // });
         request(app)
             .post("/")
             .send(JSON.stringify({ test: "value" }))
@@ -685,7 +710,6 @@ describe("Logless Express Tests", function () {
     });
  
     it("Captures console", function(done) {
-        // const client = new HTTPClient();
         Logless.enableConsoleLogging();
         const handlers = Logless.middleware("1b7d6d1d-d214-4770-a3fd-4ee6c7ffab3b");
 
@@ -700,10 +724,6 @@ describe("Logless Express Tests", function () {
             response.contentType("application/json");
             response.send(JSON.stringify({ test: { a: "b" }}));
         });
-
-        // server = app.listen(3000, function () {
-        //     console.log("Example app listening on port 3000!");
-        // });
 
         // We use a counter because we do two simultaneous requests
         // Each request should go to the correct transaction
@@ -726,13 +746,6 @@ describe("Logless Express Tests", function () {
             }
         });
 
-        // client.post("localhost", 3000, "/", JSON.stringify({ test: "value" }), function(data, statusCode) {
-        //     console.log("Response: " + data.toString());
-        // });
-
-        // client.post("localhost", 3000, "/", JSON.stringify({ test: "value" }), function(data, statusCode) {
-        //     console.log("Response: " + data.toString());
-        // });
         request(app)
             .post("/")
             .send(JSON.stringify({ test: "value" }))
@@ -748,7 +761,6 @@ describe("Logless Express Tests", function () {
     });
 
     it("Captures errors", function(done) {
-        // const client = new HTTPClient();
         Logless.enableConsoleLogging();
         const middleware = Logless.middleware("1b7d6d1d-d214-4770-a3fd-4ee6c7ffab3b");
 
@@ -761,11 +773,6 @@ describe("Logless Express Tests", function () {
         });
 
         app.use(middleware.errorHandler);
-
-        // server = app.listen(3000, function () {
-        //     console.log("Example app listening on port 3000!");
-        // });
-
 
         // logger variable gets set on the handler so we can write tests like this
         verifyLogger((<any> middleware.requestHandler).logger, function(data: any) {
@@ -781,9 +788,6 @@ describe("Logless Express Tests", function () {
             done();
         });
 
-        // client.post("localhost", 3000, "/", JSON.stringify({ test: "value" }), function(data, statusCode) {
-        //     console.log("Response: " + data.toString());
-        // });
         request(app)
             .post("/")
             .send(JSON.stringify({ test: "value" }))

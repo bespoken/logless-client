@@ -1,3 +1,7 @@
+[![CircleCI](https://circleci.com/gh/bespoken/logless-client/tree/master.svg?style=svg)](https://circleci.com/gh/bespoken/logless-client/tree/master)
+[![codecov](https://codecov.io/gh/bespoken/logless-client/branch/master/graph/badge.svg)](https://codecov.io/gh/bespoken/logless-client)
+[![npm](https://img.shields.io/npm/v/logless-client.svg)](https://www.npmjs.com/package/logless-client)
+
 # logless-client
 
 Logless will automatically capture logs and diagnostics for your Node.js Lambda, Google Cloud Function or Express.js service.
@@ -8,25 +12,28 @@ Once integrated, this is where your logs and data will be viewable.
 Install the dependency
 
 <pre><code>
-    $npm install bespoken-tools --save
+    $npm install logless-client --save
 </code></pre>
 
 To use it with Lambdas, simply wrap your function handler, like so:
 <pre><code>
-    var bst = require('bespoken-tools');
+    var client = require('logless-client');
 
-    exports.handler = bst.Logless.capture("&lt;SECRET_KEY&gt;", function (event, context) {
-        // Lambda code goes here
-        context.done(null, "Hello World");
-    });
+    const skillBuilder = Alexa.SkillBuilders.custom();
+
+    exports.handler = client.Logless.capture("&lt;SECRET_KEY&gt;", skillBuilder
+        .addRequestHandlers(
+            // Lambda request handlers goes here
+        )
+        .lambda());
 
 </code></pre>
 
 To use it with Google Cloud Functions, simply wrap your function handler:
 <pre><code>
-    var bst = require('bespoken-tools');
+    var client = require('logless-client');
 
-    exports.hello = bst.Logless.capture("&lt;SECRET_KEY&gt;", function (request, response) {
+    exports.hello = client.Logless.capture("&lt;SECRET_KEY&gt;", function (request, response) {
         // Cloud Function code goes here
         response.json({ foo: "bar" });
     });
@@ -35,9 +42,9 @@ To use it with Google Cloud Functions, simply wrap your function handler:
 
 To use it with Express.js, simply configure it with your routes:
 <pre><code>
-    var bst = require('bespoken-tools');
+    var client = require('logless-client');
 
-    var logless = bst.Logless.middleware("&lt;SECRET_KEY&gt;");
+    var logless = client.Logless.middleware("&lt;SECRET_KEY&gt;");
     app = express();
 
     app.use(bodyParser.json());
