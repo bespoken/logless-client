@@ -159,11 +159,11 @@ describe("Logless", function() {
             const handler: any = Logless.capture("JPK", function (event: any, context: any) {
                 verifyLogger(context.logger, function (json: any) {
                     assert.equal(json.logs.length, 2);
-                }, 1000);
+                });
 
                 // Want to make sure context.done is called on the Lambda via chain from calling success
                 context.succeed({"response": true});
-            });
+            }, 1000);
 
             handler.call(this, {request: true}, context);
         });
