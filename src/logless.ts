@@ -74,31 +74,33 @@ export class Logless {
      * @param handler
      * @returns {LambdaFunction}
      */
-    public static capture(source: string, handler: Function): Function {
+    public static capture(source: string, handler: Function, timeout?: number): Function {
         if (handler === undefined || handler === null) {
             throw new Error("Handler is null or undefined! This must be passed.");
         }
 
-        return new FunctionWrapper(source, handler).wrappingFunction();
+        return new FunctionWrapper(source, handler, timeout).wrappingFunction();
     }
 
     /**
      * Returns a raw logger, for working directly with Logless
      * For advanced use-cases
      * @param source
+     * @param timeout
      * @returns {LoglessContext}
      */
-    public static logger(source: string): LoglessContext {
-        return new LoglessContext(source);
+    public static logger(source: string, timeout?: number): LoglessContext {
+        return new LoglessContext(source, timeout);
     }
 
     /**
      * Returns an object to hold handlers for use in capturing logs and diagnostics with Express.js
      * @param source The secret key for your Logless app
+     * @param timeout Timeout on how many time we wait when sending logs
      * @returns {LoglessMiddleware}
      */
-    public static middleware(source: string): LoglessMiddleware {
-        const context = new LoglessContext(source);
+    public static middleware(source: string, timeout?: number): LoglessMiddleware {
+        const context = new LoglessContext(source, timeout);
         if (Logless.captureConsole) {
             context.wrapConsole();
         }
@@ -186,7 +188,7 @@ export interface CloudFunction {
  */
 class FunctionWrapper {
 
-    public constructor (private source: string, public wrappedFunction: Function) {}
+    public constructor (private source: string, public wrappedFunction: Function, private timeout?: number) {}
 
     public handle(arg1: any, arg2: any, arg3: any) {
         // If the second argument is a context object, then this is a Lambda
@@ -200,7 +202,7 @@ class FunctionWrapper {
 
     public handleLambda(event: any, context: any, callback?: Function): void {
         // Create a new logger for this context
-        const logger = new LoglessContext(this.source);
+        const logger = new LoglessContext(this.source, this.timeout);
         logger.onLambdaEvent(event, context, callback);
 
         // We put the logger on the context for testability
@@ -217,7 +219,7 @@ class FunctionWrapper {
 
     public handleCloudFunction(request: any, response: any): void {
         // Create a new logger for this context
-        const logger = new LoglessContext(this.source);
+        const logger = new LoglessContext(this.source, this.timeout);
         logger.onCloudFunctionEvent(request, response);
 
         // We put the logger on the request for testability
