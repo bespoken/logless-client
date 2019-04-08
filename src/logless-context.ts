@@ -9,8 +9,7 @@ export class LoglessContext {
     private _queue: Array<Log> = [];
     private _transactionID: string;
     private _uncaughtExceptionHandler: (Error: any) => void;
-
-    public constructor(private _source: string) {
+    public constructor(private _source: string, private _timeout?: number) {
 
     }
 
@@ -268,7 +267,8 @@ export class LoglessContext {
                 "Content-Type": "application/json",
                 "Content-Length": dataLength,
                 "Connection": "keep-alive"
-            }
+            },
+            timeout: this._timeout,
         };
 
         const httpRequest = https.request(options);

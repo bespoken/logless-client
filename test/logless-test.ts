@@ -148,6 +148,26 @@ describe("Logless", function() {
             handler.call(this, {request: true}, context);
         });
 
+        it("Logs stuff on succeed with timeout", function (done) {
+            let context = new MockContext();
+            context.done = function (error: Error, result: any) {
+                assert(result);
+                assert(result.response);
+                done();
+            };
+
+            const handler: any = Logless.capture("JPK", function (event: any, context: any) {
+                verifyLogger(context.logger, function (json: any) {
+                    assert.equal(json.logs.length, 2);
+                });
+
+                // Want to make sure context.done is called on the Lambda via chain from calling success
+                context.succeed({"response": true});
+            }, 1000);
+
+            handler.call(this, {request: true}, context);
+        });
+
         it("Logs stuff on fail", function (done) {
             let context = new MockContext();
             context.done = function (error: Error) {
